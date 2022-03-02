@@ -7,7 +7,7 @@ const sendEmail = require('../email-sending/sendgrid')
 const router = new express.Router()
 
 // Post method for new user //SIGNUP
-router.post('/users', async (req, res) => {
+router.post('/user/signin', async (req, res) => {
     // create an variable and store data from guest in new User format described in user.js module
     const user = new User(req.body)
 
@@ -23,10 +23,11 @@ router.post('/users', async (req, res) => {
 })
 
 // Login for user
-router.post('/users/login', async (req, res) => {
+router.post('/user/login', async (req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
         const token = await user.generateAuthToken()
+        // console.log('Genarated at router: ',token)
         res.send({ user, token })
     } catch (err) {
         res.status(400).send(`Something went wrong ${err}`)
@@ -46,7 +47,7 @@ const avatarUpload = multer({
     }
 })
 // Upload avatar for user
-router.post('/users/me/avatar', authenticate, avatarUpload.single('upload'), async (req, res) => {
+router.post('/user/avatar', authenticate, avatarUpload.single('upload'), async (req, res) => {
     const buffer = await sharp(req.file.buffer).resize({ width: 200, height: 200 }).png().toBuffer()
     req.user.avatar = buffer
     await req.user.save()
@@ -56,19 +57,19 @@ router.post('/users/me/avatar', authenticate, avatarUpload.single('upload'), asy
 })
 
 // DELETE delete avatar
-router.delete('/users/me/avatar', authenticate, async (req, res) => {
+router.delete('/user/avatar', authenticate, async (req, res) => {
     req.user.avatar = undefined
     await req.user.save()
     res.send('Avatar deleted')
 })
 
-// Get method to see my (user) profile
-router.get('/users', authenticate, async (req, res) => {
+// Get method to see user profile
+router.get('/user', authenticate, async (req, res) => {
     res.send(req.user)
 })
 
 // GET method to user avatar
-router.get('/users/:id/avatar', async (req, res) => {
+router.get('/user/:id/avatar', async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
         if (!user || !user.avatar) {
@@ -81,7 +82,7 @@ router.get('/users/:id/avatar', async (req, res) => {
     }
 })
 
-router.post('/users/logout', authenticate, async (req, res) => {
+router.post('/user/logout', authenticate, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter((eachTokenObjInDb) => { // filter will go through for all tokens in database of that particular user (like forEach)
             return eachTokenObjInDb.token !== req.token // Return true if token does not match with token come with header
@@ -93,7 +94,7 @@ router.post('/users/logout', authenticate, async (req, res) => {
     }
 })
 
-router.post('/users/logout-all', authenticate, async (req, res) => {
+router.post('/user/logout-all', authenticate, async (req, res) => {
     try {
         req.user.tokens = []
         await req.user.save()
@@ -104,7 +105,7 @@ router.post('/users/logout-all', authenticate, async (req, res) => {
 })
 
 // Update user data
-router.patch('/users/me', authenticate, async (req, res) => {
+router.patch('/user', authenticate, async (req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'email', 'age', 'password']
     const isValidUpdate = updates.every((update) => { // if every param from requested 'updates' is available in allowed list then only it'll return true
@@ -127,7 +128,7 @@ router.patch('/users/me', authenticate, async (req, res) => {
 })
 
 // Delete an user with ID
-router.delete('/users/me', authenticate, async (req, res) => {
+router.delete('/user', authenticate, async (req, res) => {
     try {
         await req.user.remove()
         sendEmail.deletionMail(req.user.email, req.user.name)
