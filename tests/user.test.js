@@ -97,13 +97,13 @@ test('Unauthorized delete SHOULD FAIL', async () => {
 })
 
 // DELETE==================================================
-// test('Delete user', async () => {
-//     await request(app)
-//         .delete('/user')
-//         .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
-//         .send()
-//         .expect(200)
+test('Delete user', async () => {
+    await request(app)
+        .delete('/user')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .send()
+        .expect(200)
 
-//     const user = await User.findById(userOneId)
-//     expect(user).toBeNull()
-// })
+    const user = await User.findById(userOneId)
+    expect(user).toBeNull()
+})
