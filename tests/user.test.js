@@ -1,24 +1,9 @@
 const request = require('supertest')
-const jwt = require('jsonwebtoken')
-const mongoose = require('mongoose')
 const app = require('../src/app')
 const { User } = require('../src/models/user')
+const { userOneId, userOne, setupDatabase } = require('./fixtures/db')
 
-const userOneId = new mongoose.Types.ObjectId
-const userOne = {
-    _id: userOneId,
-    name: 'Jeff',
-    email: 'jeff@gmail.com',
-    password: 'dummyKey@123',
-    tokens: [{
-        token: jwt.sign({ _id: userOneId }, process.env.JWT_SECRET)
-    }]
-}
-
-beforeEach(async () => {
-    await User.deleteMany()
-    await new User(userOne).save()
-})
+beforeEach(async () => await setupDatabase())
 
 // SIGNUP===================================================
 test('Signup new user', async () => {
@@ -106,4 +91,41 @@ test('Delete user', async () => {
 
     const user = await User.findById(userOneId)
     expect(user).toBeNull()
+})
+
+// ADD profile picture=====================================
+test('Upload profile image', async () => {
+    await request(app)
+        .post('/user/avatar')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .attach('upload', 'tests/fixtures/profile-pic.jpg')
+        .expect(200)
+
+    const user = await User.findById(userOneId)
+    expect(user.avatar).toEqual(expect.any(Buffer))
+})
+
+// UPDATE USER DATA=======================================
+test('Update name', async () => {
+    await request(app)
+        .patch('/user')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .send({
+            name: 'Aalok'
+        })
+        .expect(200)
+
+    const user = await User.findById(userOneId)
+    expect(user.name).toEqual('Aalok')
+})
+
+// UPDATE INVALID USER DATA==========================
+test('Unauthorized update SHOULD FAIL', async () => {
+    request(app)
+        .patch('/user')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .send({
+            contact: 9192929929
+        })
+        .expect(400)
 })

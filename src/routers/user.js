@@ -82,6 +82,7 @@ router.get('/user/:id/avatar', async (req, res) => {
     }
 })
 
+// LOGOUT from single device
 router.post('/user/logout', authenticate, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter((eachTokenObjInDb) => { // filter will go through for all tokens in database of that particular user (like forEach)
@@ -94,6 +95,7 @@ router.post('/user/logout', authenticate, async (req, res) => {
     }
 })
 
+// LOGOUT from multiple devices
 router.post('/user/logout-all', authenticate, async (req, res) => {
     try {
         req.user.tokens = []

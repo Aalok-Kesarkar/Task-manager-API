@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        default: 'Anonymous'
     },
     email: {
         type: String,
@@ -65,7 +64,7 @@ userSchema.virtual('virtualTasks', {
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '1d' })
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
     user.tokens = user.tokens.concat({ token })
 

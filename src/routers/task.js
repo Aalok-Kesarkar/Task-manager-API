@@ -1,17 +1,20 @@
 const express = require('express')
 const { Task } = require('../models/task')
-const { User } = require('../models/user')
 const authenticate = require('../middleware/authenticate')
 
 const router = new express.Router()
 
+console.log('Debugging==> Inside task.js line 7')
 // Post method to create tasks
 router.post('/task', authenticate, async (req, res) => {
+
+console.log('Debugging==> Inside task.js line 11')
     const task = new Task({
         ...req.body,
         owner: req.user._id
     })
 
+    console.log('Debugging==> Inside task.js line 17')
     try {
         await task.save()
         res.status(201).send(task)
@@ -19,7 +22,7 @@ router.post('/task', authenticate, async (req, res) => {
         res.status(400).send(err)
     }
 })
-
+console.log('Debugging==> Inside task.js line 25')
 // Get method to fetch all tasks
 router.get('/task', authenticate, async (req, res) => {
     // incase no query is passed via URL then 'match' will remain as blank object and will get reffered in line 38 as blank so all tasks will get fetched
@@ -76,9 +79,7 @@ router.get('/task/:id', authenticate, async (req, res) => {
 router.patch('/task/:id', authenticate, async (req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['status', 'task']
-    const isAllowedUpdate = updates.every((update) => {
-        return allowedUpdates.includes(update)
-    })
+    const isAllowedUpdate = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isAllowedUpdate) {
         return res.status(400).send({ error: `This update is not valid` })
